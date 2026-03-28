@@ -37,7 +37,7 @@ function App() {
     if (!salt) return null;
     return CryptoJS.PBKDF2(password, salt, {
       keySize: 256 / 32,
-      iterations: 600000 
+      iterations: 100000 
     }).toString();
   };
 
