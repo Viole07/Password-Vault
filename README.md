@@ -24,8 +24,3 @@ The system follows a "Blind Storage" model:
 3. **Storage**: Client sends the *Blob* to the server. The server stores it but lacks the key to unlock it.
 4. **Decryption**: Server sends *Blob* to Client → Client uses Master Password (in RAM) to decrypt.
 
-## ⚙️ Installation & Setup
-
-1. **Clone the Repo**
-   ```bash
-   git clone [https://github.com/Viole07/Password-Vault.git](https://github.com/Viole07/Password-Vault.git)
