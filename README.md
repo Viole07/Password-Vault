@@ -1,4 +1,4 @@
-# 🔐 FortKnox-Vault: Zero-Knowledge Password Manager
+# 🔐 Password-Vault: Zero-Knowledge Password Manager
 
 A secure, cross-platform password manager built with the **MERN Stack** and **Zero-Knowledge Architecture**. This vault ensures that sensitive data is encrypted/decrypted only on the client side, meaning the server never sees the user's master password or plain-text credentials.
 
