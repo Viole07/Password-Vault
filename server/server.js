@@ -15,7 +15,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173", 
-    "https://password-vault-i6cuqttv5-violes-projects-67fccd54.vercel.app/" // <--- PASTE YOUR ACTUAL VERCEL URL HERE
+    "https://password-vault-i6cuqttv5-violes-projects-67fccd54.vercel.app" // <--- PASTE YOUR ACTUAL VERCEL URL HERE
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
