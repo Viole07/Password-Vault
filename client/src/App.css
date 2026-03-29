@@ -1,60 +1,91 @@
 :root {
   --primary: #4CAF50;
   --danger: #ff4444;
-  --bg: #121212;
-  --card: #1e1e1e;
+  --warning: #ff9800;
+  --bg: #0d0d0d;
+  --card: #181818;
+  --border: #2a2a2a;
 }
 
-body { background: var(--bg); color: white; margin: 0; font-family: 'Inter', sans-serif; }
+body { background: var(--bg); color: #e0e0e0; margin: 0; font-family: 'Inter', sans-serif; }
 
 .container { max-width: 650px; margin: 40px auto; padding: 20px; }
-.center-ui { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.center-ui { text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 80vh; justify-content: center; }
 
-.vault-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.main-title { font-size: 2rem; font-weight: 800; margin: 20px 0; }
+
+.warning-banner {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 25px;
+  max-width: 450px;
+}
+
+.vault-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+.header-brand { display: flex; align-items: center; gap: 12px; }
 
 .vault-form { 
-  background: var(--card); padding: 25px; border-radius: 12px; 
-  display: flex; flex-direction: column; gap: 15px; width: 100%; box-sizing: border-box; margin-bottom: 20px;
+  background: var(--card); padding: 30px; border-radius: 16px; 
+  display: flex; flex-direction: column; gap: 18px; width: 100%; box-sizing: border-box; margin-bottom: 25px;
+  border: 1px solid var(--border);
 }
+.vault-form h3 { margin: 0; font-size: 1rem; color: #666; text-align: left; }
 
 .vault-form input {
-  background: #252525; border: 1px solid #333; color: white; 
-  padding: 14px; border-radius: 8px; font-size: 1rem; transition: 0.3s;
+  background: #111; border: 1px solid var(--border); color: white; 
+  padding: 16px; border-radius: 10px; font-size: 1rem; transition: 0.2s;
 }
 
-.vault-form input:focus { border-color: var(--primary); outline: none; background: #2a2a2a; }
+.vault-form input:focus { border-color: var(--primary); outline: none; background: #151515; }
 
 .validation-box { 
-  text-align: left; font-size: 0.85rem; background: #000; 
-  padding: 12px; border-radius: 8px; border: 1px solid #333; 
+  text-align: left; font-size: 0.8rem; background: #000; 
+  padding: 15px; border-radius: 10px; border: 1px solid var(--border); 
 }
-.validation-box p { margin: 5px 0; transition: color 0.3s; }
+.validation-box p { margin: 5px 0; }
 
-.search-container { position: relative; margin-bottom: 20px; }
-.search-icon { position: absolute; left: 15px; top: 14px; color: #666; }
+.footer-info { display: flex; gap: 15px; margin-top: 30px; }
+.info-badge { background: #1a1a1a; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; color: #555; display: flex; align-items: center; gap: 6px; border: 1px solid #222; }
+
+.search-container { position: relative; margin-bottom: 25px; }
+.search-icon { position: absolute; left: 18px; top: 16px; color: #555; }
 .search-bar { 
-  width: 100%; padding: 14px 14px 14px 45px; background: var(--card); 
-  border: 1px solid #333; border-radius: 8px; color: white; box-sizing: border-box;
+  width: 100%; padding: 16px 16px 16px 50px; background: var(--card); 
+  border: 1px solid var(--border); border-radius: 10px; color: white; box-sizing: border-box;
 }
 
 .vault-item { 
-  background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 12px;
-  display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
+  background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 15px;
+  display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);
 }
+.vault-email { color: #666; font-size: 0.9rem; margin-top: 4px; }
 
-.password-box { font-family: monospace; background: #000; padding: 6px 12px; border-radius: 4px; min-width: 120px; text-align: center; }
-
-.vault-actions { display: flex; gap: 8px; }
-.btn-icon { background: #333; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
-.btn-delete { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 10px; border-radius: 6px; cursor: pointer; }
+.password-box { font-family: monospace; background: #000; padding: 8px 14px; border-radius: 6px; min-width: 130px; text-align: center; border: 1px solid #222; }
 
 .btn-add { 
-  background: var(--primary); color: white; border: none; padding: 14px; 
-  border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase;
+  background: var(--primary); color: white; border: none; padding: 16px; 
+  border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase;
 }
-.btn-logout { background: none; border: 1px solid #444; color: #888; padding: 8px 15px; cursor: pointer; }
+.btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-logout { background: none; border: 1px solid #333; color: #666; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bounce { animation: bounce 2s infinite ease-in-out; }
 
 .primary-color { color: var(--primary); }
 .danger-color { color: var(--danger); }
-.toggle-auth { color: #888; cursor: pointer; margin-top: 15px; }
-.subtitle { color: #666; margin-bottom: 20px; }
+.toggle-auth { color: #555; cursor: pointer; margin-top: 20px; text-decoration: underline; }
+.subtitle { color: #444; margin-bottom: 30px; }

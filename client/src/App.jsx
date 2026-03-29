@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import CryptoJS from 'crypto-js';
 import axios from 'axios';
-import { Eye, EyeOff, Copy, Plus, Lock, LogOut, UserPlus, LogIn, Unlock, Trash2, Search } from 'lucide-react';
+import { Eye, EyeOff, Copy, Plus, Lock, LogOut, UserPlus, LogIn, Unlock, Trash2, Search, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
 import './App.css'; 
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5001/api";
@@ -11,6 +11,7 @@ function App() {
   const [formData, setFormData] = useState({ title: '', url: '', email: '', password: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [showPassword, setShowPassword] = useState({});
+  const [loading, setLoading] = useState(false);
   
   // Auth & Security States
   const [token, setToken] = useState(localStorage.getItem('vaultToken') || '');
@@ -19,7 +20,6 @@ function App() {
   const [masterKey, setMasterKey] = useState(''); 
   const [unlockInput, setUnlockInput] = useState('');
 
-  // Password Validation State
   const validation = useMemo(() => ({
     length: authData.password.length >= 8,
     upper: /[A-Z]/.test(authData.password),
@@ -37,7 +37,7 @@ function App() {
     if (!salt) return null;
     return CryptoJS.PBKDF2(password, salt, {
       keySize: 256 / 32,
-      iterations: 100000 
+      iterations: 600000 
     }).toString();
   };
 
@@ -70,45 +70,57 @@ function App() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!isPasswordValid) return; // Button is disabled but for safety
-
+    if (!isPasswordValid) return;
+    setLoading(true);
     try {
       await axios.post(`${API_BASE}/auth/register`, authData);
       alert("Registration Successful! Now login.");
       setIsRegistering(false);
     } catch (err) {
       alert(err.response?.data?.error || "Registration Failed");
-    }
+    } finally { setLoading(false); }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post(`${API_BASE}/auth/login`, authData);
-      const generatedKey = getDerivedKey(authData.password);
-      localStorage.setItem('keyFingerprint', CryptoJS.SHA256(generatedKey).toString());
-      localStorage.setItem('vaultToken', res.data.token);
-      localStorage.setItem('vaultUser', authData.username);
-      setToken(res.data.token);
-      setMasterKey(generatedKey);
-      setAuthData({ ...authData, password: '' }); 
-    } catch (err) {
-      alert("Login Failed: Check credentials.");
-    }
+    setLoading(true);
+    
+    // Timeout allows UI to show "Loading" before heavy math blocks the thread
+    setTimeout(async () => {
+      try {
+        const res = await axios.post(`${API_BASE}/auth/login`, authData);
+        const generatedKey = getDerivedKey(authData.password);
+        
+        localStorage.setItem('keyFingerprint', CryptoJS.SHA256(generatedKey).toString());
+        localStorage.setItem('vaultToken', res.data.token);
+        localStorage.setItem('vaultUser', authData.username);
+        
+        setToken(res.data.token);
+        setMasterKey(generatedKey);
+        setAuthData({ ...authData, password: '' }); 
+      } catch (err) {
+        alert("Login Failed: Check credentials.");
+      } finally { setLoading(false); }
+    }, 100);
   };
 
   const handleUnlock = (e) => {
     e.preventDefault();
-    const inputKey = getDerivedKey(unlockInput);
-    if (!inputKey) return;
-    const inputFingerprint = CryptoJS.SHA256(inputKey).toString();
-    if (inputFingerprint === localStorage.getItem('keyFingerprint')) {
-      setMasterKey(inputKey);
-      setUnlockInput('');
-    } else {
-      alert("Incorrect Master Password!");
-      setUnlockInput('');
-    }
+    setLoading(true);
+    setTimeout(() => {
+      const inputKey = getDerivedKey(unlockInput);
+      if (!inputKey) { setLoading(false); return; }
+      const inputFingerprint = CryptoJS.SHA256(inputKey).toString();
+      
+      if (inputFingerprint === localStorage.getItem('keyFingerprint')) {
+        setMasterKey(inputKey);
+        setUnlockInput('');
+      } else {
+        alert("Incorrect Master Password!");
+        setUnlockInput('');
+      }
+      setLoading(false);
+    }, 100);
   };
 
   const handleLogout = () => {
@@ -152,11 +164,28 @@ function App() {
   if (!token) {
     return (
       <div className="container center-ui">
-        <Lock size={50} className="primary-color" />
-        <h1>{isRegistering ? "Create Secure Account" : "Login to Vault"}</h1>
+        <Lock size={60} className="primary-color bounce" />
+        <h1 className="main-title">{isRegistering ? "Secure Enrollment" : "Vault Access"}</h1>
+        
+        <div className="warning-banner">
+          <AlertTriangle size={18} />
+          <span><strong>Security Notice:</strong> This is a Zero-Knowledge system. If you forget your Master Password, your data is lost forever. There is no password reset.</span>
+        </div>
+
         <form onSubmit={isRegistering ? handleRegister : handleLogin} className="vault-form">
-          <input name="username" placeholder="Username" onChange={(e) => setAuthData({...authData, username: e.target.value})} required />
-          <input name="password" type="password" placeholder="Password" onChange={(e) => setAuthData({...authData, password: e.target.value})} required />
+          <input 
+            name="username" 
+            placeholder="Username" 
+            onChange={(e) => setAuthData({...authData, username: e.target.value})} 
+            required 
+          />
+          <input 
+            name="password" 
+            type="password" 
+            placeholder="Master Password" 
+            onChange={(e) => setAuthData({...authData, password: e.target.value})} 
+            required 
+          />
           
           {isRegistering && (
             <div className="validation-box">
@@ -168,13 +197,19 @@ function App() {
             </div>
           )}
 
-          <button type="submit" className="btn-add" disabled={isRegistering && !isPasswordValid} style={{opacity: isRegistering && !isPasswordValid ? 0.5 : 1}}>
-            {isRegistering ? "Register" : "Login"}
+          <button type="submit" className="btn-add" disabled={(isRegistering && !isPasswordValid) || loading}>
+            {loading ? "Computing Key..." : (isRegistering ? "Register" : "Login")}
           </button>
         </form>
+
         <p onClick={() => setIsRegistering(!isRegistering)} className="toggle-auth">
-          {isRegistering ? "Back to Login" : "Need an account? Register"}
+          {isRegistering ? "Back to Login" : "Need a secure account? Register"}
         </p>
+
+        <footer className="footer-info">
+          <div className="info-badge"><ShieldCheck size={14}/> AES-256-CBC</div>
+          <div className="info-badge"><Cpu size={14}/> 100k PBKDF2</div>
+        </footer>
       </div>
     );
   }
@@ -182,12 +217,14 @@ function App() {
   if (!masterKey) {
     return (
       <div className="container center-ui">
-        <Unlock size={50} className="danger-color" />
+        <Unlock size={60} className="danger-color" />
         <h1>Vault is Locked</h1>
-        <p className="subtitle">Enter Master Password to derive decryption key.</p>
-        <form onSubmit={handleUnlock} className="vault-form" style={{maxWidth: '350px'}}>
+        <p className="subtitle">Enter your Master Password to re-derive your local decryption key.</p>
+        <form onSubmit={handleUnlock} className="vault-form" style={{maxWidth: '400px'}}>
           <input type="password" placeholder="Master Password" value={unlockInput} onChange={(e) => setUnlockInput(e.target.value)} required />
-          <button type="submit" className="btn-add">Unlock</button>
+          <button type="submit" className="btn-add" disabled={loading}>
+            {loading ? "Unlocking..." : "Unlock"}
+          </button>
         </form>
         <button onClick={handleLogout} className="btn-logout">Logout / Switch User</button>
       </div>
@@ -197,27 +234,31 @@ function App() {
   return (
     <div className="container">
       <header className="vault-header">
-        <h1>🔐 Secure Vault</h1>
+        <div className="header-brand">
+          <ShieldCheck size={24} className="primary-color" />
+          <h1>Password Vault</h1>
+        </div>
         <button onClick={handleLogout} className="btn-logout"><LogOut size={16} /> Logout</button>
       </header>
 
       <form className="vault-form" onSubmit={handleSubmit}>
+        <h3>Add New Secure Entry</h3>
         <input name="title" placeholder="Site Name" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
         <input name="email" placeholder="Email/Username" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
         <input name="password" type="password" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required />
-        <button type="submit" className="btn-add"><Plus size={16} /> Add Entry</button>
+        <button type="submit" className="btn-add"><Plus size={16} /> Encrypt & Add</button>
       </form>
 
       <div className="search-container">
         <Search className="search-icon" size={18} />
-        <input className="search-bar" placeholder="Search passwords..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        <input className="search-bar" placeholder="Search decrypted vault..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
 
       <div className="vault-list">
         {vault.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => (
           <div key={item._id} className="vault-item">
             <div className="vault-info">
-              <strong>{item.title}</strong>
+              <strong style={{fontSize: '1.1rem'}}>{item.title}</strong>
               <div className="vault-email">{item.email}</div>
             </div>
             <div className="vault-actions">
@@ -231,6 +272,7 @@ function App() {
           </div>
         ))}
       </div>
+      {vault.length === 0 && <p style={{textAlign: 'center', color: '#444', marginTop: '40px'}}>Vault is empty.</p>}
     </div>
   );
 }
